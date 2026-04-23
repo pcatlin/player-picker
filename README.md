@@ -6,13 +6,12 @@ Everyone places one finger on the screen and holds for 5 seconds. If all touches
 
 ## Features
 
-- Anonymous play (no name entry)
 - Multi-touch tracking with one circle per finger
 - Live circle movement that follows each finger
 - Evenly spread random hues for active players
 - 5-second hold countdown
 - Winner reveal animation:
-  - winner color expands to fill the screen
+  - winner colour expands to fill the screen
   - losing circles disappear
   - white marker shows the chosen touch
 - Optional haptics toggle
@@ -52,7 +51,6 @@ Open a target platform:
 ```bash
 npm run ios
 npm run android
-npm run web
 ```
 
 ## How To Use
@@ -62,22 +60,6 @@ npm run web
 3. Keep all fingers down for 5 seconds.
 4. Watch the winner reveal animation.
 5. Tap **Play Again** to start another round.
-
-## Project Structure
-
-```txt
-App.tsx
-src/
-  components/
-    TouchArena.tsx
-    WinnerModal.tsx
-  screens/
-    PickerScreen.tsx
-  state/
-    usePickerState.ts
-  utils/
-    random.ts
-```
 
 ## Testing
 
@@ -93,7 +75,7 @@ npx tsc --noEmit
 - With 2+ touches: countdown starts and updates
 - If any player lifts finger early: round resets
 - Circles follow moving fingers smoothly
-- Circle hues are distinct and spread across the color wheel
+- Circle hues are distinct and match chosen colours in settings
 - Winner is selected only after full 5 seconds
 - Winner fill expands from selected touch point
 - White winner marker appears on chosen touch location
@@ -154,4 +136,4 @@ If needed, place generated assets under a folder like `store-assets/` and keep s
 
 ## License
 
-Private project by default. Add a license file if you plan to open-source it.
+Coming soon
