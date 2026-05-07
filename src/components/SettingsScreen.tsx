@@ -3,31 +3,25 @@ import { COLOR_PICKER_SWATCHES } from "../constants/colors";
 
 type SettingsScreenProps = {
   canUseMorePlayers: boolean;
-  devUnlockOverride: boolean;
   hapticsEnabled: boolean;
   onClose: () => void;
   onRestorePurchases: () => void;
   onToggleHaptics: () => void;
-  onToggleDevUnlockOverride: () => void;
   onUnlockMorePlayers: () => void;
   onUpdatePlayerColor: (index: number, color: string) => void;
   playerColors: string[];
-  showDevTools: boolean;
   showUnlockPrompt: boolean;
 };
 
 export const SettingsScreen = ({
   canUseMorePlayers,
-  devUnlockOverride,
   hapticsEnabled,
   onClose,
   onRestorePurchases,
   onToggleHaptics,
-  onToggleDevUnlockOverride,
   onUnlockMorePlayers,
   onUpdatePlayerColor,
   playerColors,
-  showDevTools,
   showUnlockPrompt,
 }: SettingsScreenProps) => {
   const visibleColorRows = canUseMorePlayers ? playerColors : playerColors.slice(0, 3);
@@ -60,20 +54,19 @@ export const SettingsScreen = ({
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>More Players</Text>
-          <Text style={styles.helper}>pick from up to 8 players</Text>
-          <Pressable onPress={onUnlockMorePlayers} style={styles.actionButton}>
-            <Text style={styles.actionButtonText}>Unlock more players</Text>
-          </Pressable>
-          <Pressable onPress={onRestorePurchases} style={styles.secondaryButton}>
-            <Text style={styles.secondaryButtonText}>Restore purchases</Text>
-          </Pressable>
-          {showDevTools ? (
-            <Pressable onPress={onToggleDevUnlockOverride} style={styles.secondaryButton}>
-              <Text style={styles.secondaryButtonText}>
-                Developer test unlock: {devUnlockOverride ? "On" : "Off"}
-              </Text>
-            </Pressable>
-          ) : null}
+          {!canUseMorePlayers ? (
+            <>
+              <Text style={styles.helper}>pick from up to 8 players</Text>
+              <Pressable onPress={onUnlockMorePlayers} style={styles.actionButton}>
+                <Text style={styles.actionButtonText}>Unlock more players</Text>
+              </Pressable>
+              <Pressable onPress={onRestorePurchases} style={styles.secondaryButton}>
+                <Text style={styles.secondaryButtonText}>Restore purchases</Text>
+              </Pressable>
+            </>
+          ) : (
+            <Text style={styles.helper}>More players unlocked. Thank you!</Text>
+          )}
         </View>
 
         <View style={styles.section}>

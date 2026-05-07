@@ -22,13 +22,11 @@ export const PickerScreen = () => {
   const textOpacity = useRef(new Animated.Value(1)).current;
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const {
-    devUnlockOverride,
     hapticsEnabled,
     isLoading,
     isUnlocked,
     playerColors,
     restorePurchases,
-    setDevUnlockOverride,
     setHapticsEnabled,
     unlockMorePlayers,
     updatePlayerColor,
@@ -154,7 +152,6 @@ export const PickerScreen = () => {
       {isSettingsOpen ? (
         <SettingsScreen
           canUseMorePlayers={isUnlocked}
-          devUnlockOverride={devUnlockOverride}
           hapticsEnabled={hapticsEnabled}
           onClose={() => setIsSettingsOpen(false)}
           onRestorePurchases={async () => {
@@ -166,9 +163,6 @@ export const PickerScreen = () => {
                 : "No previous unlock purchase was found.",
             );
           }}
-          onToggleDevUnlockOverride={() =>
-            setDevUnlockOverride((current) => !current)
-          }
           onToggleHaptics={() => setHapticsEnabled(!hapticsEnabled)}
           onUnlockMorePlayers={async () => {
             const result = await unlockMorePlayers();
@@ -189,7 +183,6 @@ export const PickerScreen = () => {
           }}
           onUpdatePlayerColor={updatePlayerColor}
           playerColors={playerColors}
-          showDevTools={__DEV__}
           showUnlockPrompt={!isUnlocked && rawTouchCount >= 4}
         />
       ) : null}

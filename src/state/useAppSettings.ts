@@ -1,5 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { DEFAULT_PLAYER_COLORS } from "../constants/colors";
 import {
   hasMorePlayersEntitlement,
@@ -25,7 +25,6 @@ const DEFAULT_SETTINGS: StoredSettings = {
 export const useAppSettings = () => {
   const [settings, setSettings] = useState<StoredSettings>(DEFAULT_SETTINGS);
   const [isLoading, setIsLoading] = useState(true);
-  const [devUnlockOverride, setDevUnlockOverride] = useState(false);
 
   useEffect(() => {
     const load = async () => {
@@ -106,13 +105,6 @@ export const useAppSettings = () => {
     return true;
   }, [persist, settings]);
 
-  const updateDevUnlockOverride = useCallback(
-    (updater: (current: boolean) => boolean) => {
-      setDevUnlockOverride((current) => updater(current));
-    },
-    [],
-  );
-
   const updateHapticsEnabled = useCallback(
     async (enabled: boolean) => {
       await setHapticsEnabled(enabled);
@@ -127,27 +119,15 @@ export const useAppSettings = () => {
     [updatePlayerColor],
   );
 
-  const grantUnlocked = useCallback(async () => {
-    await persist({ ...settings, isUnlocked: true });
-  }, [persist, settings]);
-
-  const isUnlocked = useMemo(
-    () => settings.isUnlocked || devUnlockOverride,
-    [devUnlockOverride, settings.isUnlocked],
-  );
-
   return {
-    devUnlockOverride,
     hapticsEnabled: settings.hapticsEnabled,
     isLoading,
-    isUnlocked,
+    isUnlocked: settings.isUnlocked,
     playerColors: settings.playerColors,
     restorePurchases,
-    setDevUnlockOverride: updateDevUnlockOverride,
     setHapticsEnabled: updateHapticsEnabled,
     unlockMorePlayers,
     updatePlayerColor: setPlayerColor,
-    unlockLocallyForTesting: grantUnlocked,
   };
 };
 

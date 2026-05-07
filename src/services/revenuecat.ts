@@ -5,6 +5,7 @@ const ENTITLEMENT_ID = "more_players";
 const OFFERING_ID = "default";
 
 let isConfigured = false;
+let initPromise: Promise<boolean> | null = null;
 
 const getApiKey = () => {
   if (Platform.OS === "ios") {
@@ -20,16 +21,35 @@ export const initRevenueCat = async () => {
   if (isConfigured) {
     return true;
   }
-
-  const apiKey = getApiKey();
-  if (!apiKey) {
-    return false;
+  if (initPromise) {
+    return initPromise;
   }
 
-  Purchases.setLogLevel(Purchases.LOG_LEVEL.INFO);
-  await Purchases.configure({ apiKey });
-  isConfigured = true;
-  return true;
+  initPromise = (async () => {
+    const apiKey = getApiKey();
+    if (!apiKey) {
+      return false;
+    }
+
+    Purchases.setLogLevel(Purchases.LOG_LEVEL.INFO);
+    try {
+      await Purchases.configure({ apiKey });
+    } catch (error: any) {
+      const message = String(error?.message ?? error ?? "");
+      // Can happen on fast refresh if an instance was already configured.
+      if (!message.includes("Purchases instance already set")) {
+        throw error;
+      }
+    }
+    isConfigured = true;
+    return true;
+  })();
+
+  try {
+    return await initPromise;
+  } finally {
+    initPromise = null;
+  }
 };
 
 export const hasMorePlayersEntitlement = async () => {
