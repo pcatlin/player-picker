@@ -1,7 +1,4 @@
-import React from "react";
-import { act, create } from "react-test-renderer";
-
-(globalThis as any).IS_REACT_ACT_ENVIRONMENT = true;
+import { act, renderHook, waitFor } from "@testing-library/react";
 
 const storage: Record<string, string | null> = {};
 
@@ -30,12 +27,6 @@ jest.mock("../services/revenuecat", () => ({
   restoreMorePlayersPurchases: restorePurchasesMock,
 }));
 
-const flush = async () =>
-  act(async () => {
-    await Promise.resolve();
-    await Promise.resolve();
-  });
-
 describe("useAppSettings", () => {
   beforeEach(() => {
     Object.keys(storage).forEach((key) => delete storage[key]);
@@ -45,30 +36,16 @@ describe("useAppSettings", () => {
     restorePurchasesMock.mockResolvedValue(false);
   });
 
-  const renderHook = async () => {
-    let latest: any = null;
-    let renderer: any = null;
-
-    const Harness = () => {
-      const { useAppSettings } = require("./useAppSettings");
-      latest = useAppSettings();
-      return null;
-    };
-
-    await act(async () => {
-      renderer = create(React.createElement(Harness));
-    });
-    await flush();
-
-    return {
-      getCurrent: () => latest,
-      unmount: () => renderer?.unmount(),
-    };
+  const renderSettingsHook = async () => {
+    const { useAppSettings } = await import("./useAppSettings");
+    const hook = renderHook(() => useAppSettings());
+    await waitFor(() => expect(hook.result.current.isLoading).toBe(false));
+    return hook;
   };
 
   it("loads defaults when storage is empty", async () => {
-    const { getCurrent, unmount } = await renderHook();
-    const current = getCurrent();
+    const { result, unmount } = await renderSettingsHook();
+    const current = result.current;
     expect(current.isLoading).toBe(false);
     expect(current.hapticsEnabled).toBe(true);
     expect(current.isUnlocked).toBe(false);
@@ -78,18 +55,18 @@ describe("useAppSettings", () => {
 
   it("syncs remote entitlement to unlocked", async () => {
     hasEntitlementMock.mockResolvedValue(true);
-    const { getCurrent, unmount } = await renderHook();
-    expect(getCurrent().isUnlocked).toBe(true);
+    const { result, unmount } = await renderSettingsHook();
+    expect(result.current.isUnlocked).toBe(true);
     unmount();
   });
 
   it("persists haptics updates", async () => {
-    const { getCurrent, unmount } = await renderHook();
+    const { result, unmount } = await renderSettingsHook();
     await act(async () => {
-      await getCurrent().setHapticsEnabled(false);
+      await result.current.setHapticsEnabled(false);
     });
     expect(setItemMock).toHaveBeenCalled();
-    expect(getCurrent().hapticsEnabled).toBe(false);
+    expect(result.current.hapticsEnabled).toBe(false);
     expect(setItemMock).toHaveBeenLastCalledWith(
       "player-picker-settings-v1",
       expect.stringContaining("\"hapticsEnabled\":false"),
@@ -98,11 +75,11 @@ describe("useAppSettings", () => {
   });
 
   it("persists player color updates", async () => {
-    const { getCurrent, unmount } = await renderHook();
+    const { result, unmount } = await renderSettingsHook();
     await act(async () => {
-      await getCurrent().updatePlayerColor(0, "#ffffff");
+      await result.current.updatePlayerColor(0, "#ffffff");
     });
-    expect(getCurrent().playerColors[0]).toBe("#ffffff");
+    expect(result.current.playerColors[0]).toBe("#ffffff");
     expect(setItemMock).toHaveBeenLastCalledWith(
       "player-picker-settings-v1",
       expect.stringContaining("#ffffff"),
@@ -111,22 +88,22 @@ describe("useAppSettings", () => {
   });
 
   it("unlocks after successful purchase", async () => {
-    const { getCurrent, unmount } = await renderHook();
+    const { result, unmount } = await renderSettingsHook();
     await act(async () => {
-      await getCurrent().unlockMorePlayers();
+      await result.current.unlockMorePlayers();
     });
     expect(purchaseMorePlayersMock).toHaveBeenCalled();
-    expect(getCurrent().isUnlocked).toBe(true);
+    expect(result.current.isUnlocked).toBe(true);
     unmount();
   });
 
   it("restore purchases unlocks when revenuecat restore succeeds", async () => {
     restorePurchasesMock.mockResolvedValue(true);
-    const { getCurrent, unmount } = await renderHook();
+    const { result, unmount } = await renderSettingsHook();
     await act(async () => {
-      await getCurrent().restorePurchases();
+      await result.current.restorePurchases();
     });
-    expect(getCurrent().isUnlocked).toBe(true);
+    expect(result.current.isUnlocked).toBe(true);
     unmount();
   });
 });

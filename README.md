@@ -8,7 +8,7 @@ Everyone places one finger on the screen and holds for 5 seconds. If all touches
 
 - Multi-touch tracking with one circle per finger
 - Live circle movement that follows each finger
-- Evenly spread random hues for active players
+- Configurable player colors in settings
 - 5-second hold countdown
 - Winner reveal animation:
   - winner colour expands to fill the screen
@@ -69,7 +69,20 @@ npm run android
 npx tsc --noEmit
 ```
 
-### 2) Manual QA checklist
+### 2) Automated tests
+
+Run all unit tests:
+
+```bash
+npm test
+```
+
+Current test coverage includes:
+- RevenueCat service init/purchase/restore behaviors
+- App settings persistence (haptics, colors, unlock state)
+- Purchase gating outcomes (success/cancel/restore paths)
+
+### 3) Manual QA checklist
 
 - With 0-1 touches: countdown does not start
 - With 2+ touches: countdown starts and updates
@@ -80,6 +93,29 @@ npx tsc --noEmit
 - Winner fill expands from selected touch point
 - White winner marker appears on chosen touch location
 - Haptics toggle correctly enables/disables haptic feedback
+
+### 4) Purchase flow testing (RevenueCat)
+
+To test in-app purchases, use a dev build (not Expo Go):
+
+```bash
+npm run eas:build:ios:development
+npm run eas:build:android:development
+```
+
+Required env vars for builds:
+- `EXPO_PUBLIC_REVENUECAT_IOS_API_KEY`
+- `EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY`
+
+RevenueCat setup notes:
+- Entitlement ID must be `more_players`
+- Ensure your current offering includes a package mapped to that entitlement
+- Restore flow should unlock users who previously purchased
+
+Sandbox testing notes:
+- iOS: sign in with a Sandbox Apple account on device
+- Android: use a Play test account and internal testing track
+- If unlock fails, verify API keys, entitlement ID, offering/package mapping, and bundle/package IDs
 
 ## Build and Deploy
 
