@@ -2,12 +2,12 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 
 type WinnerModalProps = {
   onPlayAgain: () => void;
-  placeTop?: boolean;
+  bottomOffset?: number;
 };
 
-export const WinnerModal = ({ onPlayAgain, placeTop = false }: WinnerModalProps) => {
+export const WinnerModal = ({ onPlayAgain, bottomOffset = 56 }: WinnerModalProps) => {
   return (
-    <View style={[styles.wrapper, placeTop ? styles.wrapperTop : styles.wrapperBottom]}>
+    <View style={[styles.wrapper, { bottom: bottomOffset }]}>
       <Text style={styles.title}>Chosen Player</Text>
       <Pressable onPress={onPlayAgain} style={styles.button}>
         <Text style={styles.buttonText}>Play Again</Text>
@@ -37,16 +37,11 @@ const styles = StyleSheet.create({
   },
   wrapper: {
     alignItems: "center",
+    bottom: 56,
     left: 0,
     paddingHorizontal: 20,
     position: "absolute",
     right: 0,
     zIndex: 50,
-  },
-  wrapperBottom: {
-    bottom: 56,
-  },
-  wrapperTop: {
-    top: 56,
   },
 });

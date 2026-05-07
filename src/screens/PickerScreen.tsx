@@ -51,7 +51,25 @@ export const PickerScreen = () => {
     }).start();
   }, [activeTouches.length, isSettingsOpen, phase, textOpacity]);
 
-  const showWinnerControlsAtTop = Boolean(winner && winner.y > windowHeight / 2);
+  const BASE_WINNER_MODAL_BOTTOM = 56;
+  const WINNER_MODAL_HEIGHT = 132;
+  const WINNER_FINGER_CLEARANCE = 24;
+
+  const winnerModalBottomOffset = (() => {
+    if (!winner) {
+      return BASE_WINNER_MODAL_BOTTOM;
+    }
+
+    const modalTopAtBase = windowHeight - BASE_WINNER_MODAL_BOTTOM - WINNER_MODAL_HEIGHT;
+    const shouldMoveUp = winner.y >= modalTopAtBase;
+
+    if (!shouldMoveUp) {
+      return BASE_WINNER_MODAL_BOTTOM;
+    }
+
+    // Keep modal just above the winning finger only when overlap would occur.
+    return windowHeight - winner.y + WINNER_FINGER_CLEARANCE;
+  })();
 
   return (
     <View style={styles.container}>
@@ -105,7 +123,10 @@ export const PickerScreen = () => {
       ) : null}
 
       {phase === "reveal" && winner && !isSettingsOpen ? (
-        <WinnerModal onPlayAgain={resetForNewRound} placeTop={showWinnerControlsAtTop} />
+        <WinnerModal
+          bottomOffset={winnerModalBottomOffset}
+          onPlayAgain={resetForNewRound}
+        />
       ) : null}
 
       {isSettingsOpen ? (
