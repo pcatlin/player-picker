@@ -2,13 +2,13 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { pickRandom } from "../utils/random";
 
 export type TouchPoint = {
-  id: number;
+  id: string | number;
   x: number;
   y: number;
 };
 
 export type Winner = {
-  touchId: number;
+  touchId: string | number;
   playerIndex: number;
   label: string;
   x: number;
@@ -21,19 +21,22 @@ const HOLD_DURATION_MS = 5000;
 const MIN_PLAYERS = 2;
 
 const sortTouches = (touches: TouchPoint[]) =>
-  [...touches].sort((a, b) => a.id - b.id);
+  [...touches].sort((a, b) =>
+    String(a.id).localeCompare(String(b.id), undefined, { numeric: true }),
+  );
 
-const isSameIdSet = (a: number[], b: number[]) =>
+const isSameIdSet = (a: Array<string | number>, b: Array<string | number>) =>
   a.length === b.length && a.every((value, index) => value === b[index]);
 
 export const usePickerState = () => {
   const [phase, setPhase] = useState<RoundPhase>("ready");
   const [activeTouches, setActiveTouches] = useState<TouchPoint[]>([]);
+  const [rawTouchCount, setRawTouchCount] = useState(0);
   const [remainingMs, setRemainingMs] = useState(HOLD_DURATION_MS);
   const [winner, setWinner] = useState<Winner | null>(null);
 
   const holdStartRef = useRef<number | null>(null);
-  const lockedTouchIdsRef = useRef<number[]>([]);
+  const lockedTouchIdsRef = useRef<Array<string | number>>([]);
   const activeTouchesRef = useRef<TouchPoint[]>([]);
 
   useEffect(() => {
@@ -44,12 +47,13 @@ export const usePickerState = () => {
     holdStartRef.current = null;
     lockedTouchIdsRef.current = [];
     setActiveTouches([]);
+    setRawTouchCount(0);
     setPhase("ready");
     setRemainingMs(HOLD_DURATION_MS);
     setWinner(null);
   }, []);
 
-  const beginHold = useCallback((touchIds: number[]) => {
+  const beginHold = useCallback((touchIds: Array<string | number>) => {
     holdStartRef.current = Date.now();
     lockedTouchIdsRef.current = touchIds;
     setPhase("holding");
@@ -57,11 +61,13 @@ export const usePickerState = () => {
   }, []);
 
   const updateTouches = useCallback(
-    (touches: TouchPoint[]) => {
+    (touches: TouchPoint[], maxPlayers: number) => {
       const sortedTouches = sortTouches(touches);
-      const touchIds = sortedTouches.map((touch) => touch.id);
+      setRawTouchCount(sortedTouches.length);
+      const limitedTouches = sortedTouches.slice(0, maxPlayers);
+      const touchIds = limitedTouches.map((touch) => touch.id);
 
-      setActiveTouches(sortedTouches);
+      setActiveTouches(limitedTouches);
 
       if (phase === "reveal") {
         return;
@@ -160,6 +166,7 @@ export const usePickerState = () => {
     MIN_PLAYERS,
     activeTouches,
     countdownSeconds,
+    rawTouchCount,
     phase,
     updateTouches,
     winner,

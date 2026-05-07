@@ -1,9 +1,10 @@
 import * as Haptics from "expo-haptics";
 import { useEffect, useRef, useState } from "react";
 import {
+  Alert,
   Animated,
-  Platform,
   Pressable,
+  Platform,
   StyleSheet,
   Text,
   View,
@@ -12,7 +13,7 @@ import {
 import { SettingsScreen } from "../components/SettingsScreen";
 import { TouchArena } from "../components/TouchArena";
 import { WinnerModal } from "../components/WinnerModal";
-import { DEFAULT_PLAYER_COLORS } from "../constants/colors";
+import { useAppSettings } from "../state/useAppSettings";
 import { usePickerState } from "../state/usePickerState";
 
 export const PickerScreen = () => {
@@ -20,19 +21,34 @@ export const PickerScreen = () => {
   const textOffsetY = windowHeight * 0.05;
   const textOpacity = useRef(new Animated.Value(1)).current;
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [hapticsEnabled, setHapticsEnabled] = useState(true);
-  const [playerColors, setPlayerColors] = useState(DEFAULT_PLAYER_COLORS);
+  const {
+    devUnlockOverride,
+    hapticsEnabled,
+    isLoading,
+    isUnlocked,
+    playerColors,
+    restorePurchases,
+    setDevUnlockOverride,
+    setHapticsEnabled,
+    unlockMorePlayers,
+    updatePlayerColor,
+  } = useAppSettings();
+  const maxPlayers = isUnlocked ? 8 : 3;
   const {
     MIN_PLAYERS,
     activeTouches,
     countdownSeconds,
     phase,
+    rawTouchCount,
     resetForNewRound,
     updateTouches,
     winner,
   } = usePickerState();
 
   useEffect(() => {
+    if (isLoading) {
+      return;
+    }
     if (!winner || !hapticsEnabled) {
       return;
     }
@@ -40,7 +56,7 @@ export const PickerScreen = () => {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {
       // Ignore device haptics errors so gameplay flow is unaffected.
     });
-  }, [hapticsEnabled, winner]);
+  }, [hapticsEnabled, isLoading, winner]);
 
   useEffect(() => {
     const shouldFadeOut = !isSettingsOpen && phase !== "reveal" && activeTouches.length > 1;
@@ -53,7 +69,7 @@ export const PickerScreen = () => {
 
   const BASE_WINNER_MODAL_BOTTOM = 56;
   const WINNER_MODAL_HEIGHT = 132;
-  const WINNER_FINGER_CLEARANCE = 24;
+  const WINNER_FINGER_CLEARANCE = 42;
 
   const winnerModalBottomOffset = (() => {
     if (!winner) {
@@ -102,12 +118,18 @@ export const PickerScreen = () => {
 
       <TouchArena
         countdownSeconds={countdownSeconds}
-        onTouchesChanged={updateTouches}
+        onTouchesChanged={(touches) => updateTouches(touches, maxPlayers)}
         phase={phase}
         playerColors={playerColors}
         touches={activeTouches}
         winner={winner}
       />
+
+      {!isUnlocked && rawTouchCount >= 4 && !isSettingsOpen ? (
+        <Pressable onPress={() => setIsSettingsOpen(true)} style={styles.unlockPromptInline}>
+          <Text style={styles.unlockPromptInlineText}>Unlock more players</Text>
+        </Pressable>
+      ) : null}
 
       {phase === "ready" && !isSettingsOpen ? (
         <Animated.View
@@ -131,17 +153,44 @@ export const PickerScreen = () => {
 
       {isSettingsOpen ? (
         <SettingsScreen
+          canUseMorePlayers={isUnlocked}
+          devUnlockOverride={devUnlockOverride}
           hapticsEnabled={hapticsEnabled}
           onClose={() => setIsSettingsOpen(false)}
-          onToggleHaptics={() => setHapticsEnabled((value) => !value)}
-          onUpdatePlayerColor={(index, color) =>
-            setPlayerColors((current) => {
-              const next = [...current];
-              next[index] = color;
-              return next;
-            })
+          onRestorePurchases={async () => {
+            const restored = await restorePurchases();
+            Alert.alert(
+              restored ? "Purchases restored" : "Nothing to restore",
+              restored
+                ? "More players are now unlocked on this device."
+                : "No previous unlock purchase was found.",
+            );
+          }}
+          onToggleDevUnlockOverride={() =>
+            setDevUnlockOverride((current) => !current)
           }
+          onToggleHaptics={() => setHapticsEnabled(!hapticsEnabled)}
+          onUnlockMorePlayers={async () => {
+            const result = await unlockMorePlayers();
+            if (result.ok) {
+              Alert.alert("Unlocked", "You can now pick from up to 8 players.");
+              return;
+            }
+
+            if (result.reason === "cancelled") {
+              Alert.alert("Purchase cancelled", "No changes were made.");
+              return;
+            }
+
+            Alert.alert(
+              "Unable to unlock",
+              "Please confirm RevenueCat keys and product setup, then try again.",
+            );
+          }}
+          onUpdatePlayerColor={updatePlayerColor}
           playerColors={playerColors}
+          showDevTools={__DEV__}
+          showUnlockPrompt={!isUnlocked && rawTouchCount >= 4}
         />
       ) : null}
     </View>
@@ -154,6 +203,21 @@ const styles = StyleSheet.create({
   },
   settingsButton: {
     zIndex: 80,
+  },
+  unlockPromptInline: {
+    alignSelf: "center",
+    backgroundColor: "rgba(255,255,255,0.18)",
+    borderRadius: 999,
+    bottom: 120,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    position: "absolute",
+    zIndex: 45,
+  },
+  unlockPromptInlineText: {
+    color: "#ffffff",
+    fontSize: 14,
+    fontWeight: "800",
   },
   helper: {
     color: "rgba(255,255,255,0.75)",

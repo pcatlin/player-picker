@@ -89,7 +89,9 @@ export const TouchArena = ({
   }, [fillAnim, phase, winner]);
 
   const coloredTouches: ColoredTouch[] = useMemo(() => {
-    const ordered = [...touches].sort((a, b) => a.id - b.id);
+    const ordered = [...touches].sort((a, b) =>
+      String(a.id).localeCompare(String(b.id), undefined, { numeric: true }),
+    );
     return ordered.map((touch, index) => ({
       ...touch,
       color: playerColors[index] ?? "#6e64ff",

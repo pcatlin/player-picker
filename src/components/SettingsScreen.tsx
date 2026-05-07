@@ -2,20 +2,36 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { COLOR_PICKER_SWATCHES } from "../constants/colors";
 
 type SettingsScreenProps = {
+  canUseMorePlayers: boolean;
+  devUnlockOverride: boolean;
   hapticsEnabled: boolean;
   onClose: () => void;
+  onRestorePurchases: () => void;
   onToggleHaptics: () => void;
+  onToggleDevUnlockOverride: () => void;
+  onUnlockMorePlayers: () => void;
   onUpdatePlayerColor: (index: number, color: string) => void;
   playerColors: string[];
+  showDevTools: boolean;
+  showUnlockPrompt: boolean;
 };
 
 export const SettingsScreen = ({
+  canUseMorePlayers,
+  devUnlockOverride,
   hapticsEnabled,
   onClose,
+  onRestorePurchases,
   onToggleHaptics,
+  onToggleDevUnlockOverride,
+  onUnlockMorePlayers,
   onUpdatePlayerColor,
   playerColors,
+  showDevTools,
+  showUnlockPrompt,
 }: SettingsScreenProps) => {
+  const visibleColorRows = canUseMorePlayers ? playerColors : playerColors.slice(0, 3);
+
   return (
     <View style={styles.screen}>
       <View style={styles.header}>
@@ -26,6 +42,13 @@ export const SettingsScreen = ({
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>
+        {showUnlockPrompt ? (
+          <View style={styles.promptCard}>
+            <Text style={styles.promptTitle}>Unlock more players</Text>
+            <Text style={styles.promptBody}>Open purchase options below in this settings screen.</Text>
+          </View>
+        ) : null}
+
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Gameplay</Text>
           <Pressable onPress={onToggleHaptics} style={styles.toggleButton}>
@@ -36,11 +59,29 @@ export const SettingsScreen = ({
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Player Colors (1-8)</Text>
+          <Text style={styles.sectionTitle}>More Players</Text>
+          <Text style={styles.helper}>pick from up to 8 players</Text>
+          <Pressable onPress={onUnlockMorePlayers} style={styles.actionButton}>
+            <Text style={styles.actionButtonText}>Unlock more players</Text>
+          </Pressable>
+          <Pressable onPress={onRestorePurchases} style={styles.secondaryButton}>
+            <Text style={styles.secondaryButtonText}>Restore purchases</Text>
+          </Pressable>
+          {showDevTools ? (
+            <Pressable onPress={onToggleDevUnlockOverride} style={styles.secondaryButton}>
+              <Text style={styles.secondaryButtonText}>
+                Developer test unlock: {devUnlockOverride ? "On" : "Off"}
+              </Text>
+            </Pressable>
+          ) : null}
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Player Colors</Text>
           <Text style={styles.helper}>
             Choose fixed colors used for touch circles and winner reveal.
           </Text>
-          {playerColors.map((color, playerIndex) => (
+          {visibleColorRows.map((color, playerIndex) => (
             <View key={`player-color-${playerIndex}`} style={styles.playerRow}>
               <Text style={styles.playerLabel}>Player {playerIndex + 1}</Text>
               <View style={styles.swatches}>
@@ -58,6 +99,11 @@ export const SettingsScreen = ({
               </View>
             </View>
           ))}
+          {!canUseMorePlayers ? (
+              <Text style={styles.helper}>
+                Players 4-8 are locked. Unlock more players to customize additional colors.
+              </Text>
+          ) : null}
         </View>
       </ScrollView>
     </View>
@@ -65,6 +111,19 @@ export const SettingsScreen = ({
 };
 
 const styles = StyleSheet.create({
+  actionButton: {
+    alignSelf: "flex-start",
+    backgroundColor: "#ffffff",
+    borderRadius: 999,
+    marginBottom: 10,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+  },
+  actionButtonText: {
+    color: "#0b1020",
+    fontSize: 14,
+    fontWeight: "700",
+  },
   content: {
     paddingBottom: 32,
     paddingHorizontal: 20,
@@ -104,6 +163,23 @@ const styles = StyleSheet.create({
   playerRow: {
     marginBottom: 16,
   },
+  promptBody: {
+    color: "rgba(255,255,255,0.88)",
+    fontSize: 13,
+    marginTop: 6,
+  },
+  promptCard: {
+    backgroundColor: "rgba(255,255,255,0.14)",
+    borderRadius: 14,
+    marginTop: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+  },
+  promptTitle: {
+    color: "#ffffff",
+    fontSize: 15,
+    fontWeight: "800",
+  },
   screen: {
     backgroundColor: "rgba(7,15,35,0.95)",
     flex: 1,
@@ -116,6 +192,19 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: "800",
     marginBottom: 8,
+  },
+  secondaryButton: {
+    alignSelf: "flex-start",
+    backgroundColor: "rgba(255,255,255,0.16)",
+    borderRadius: 999,
+    marginBottom: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+  },
+  secondaryButtonText: {
+    color: "#ffffff",
+    fontSize: 13,
+    fontWeight: "700",
   },
   swatch: {
     borderColor: "rgba(255,255,255,0.3)",

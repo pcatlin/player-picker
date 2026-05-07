@@ -25,6 +25,12 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "be58dd0c-509b-45fa-896c-f08be67873ff"
+      }
+    },
+    "owner": "paulcatlin"
   }
 }
