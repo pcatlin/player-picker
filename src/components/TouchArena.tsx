@@ -135,11 +135,10 @@ export const TouchArena = ({
     <View
       ref={arenaRef}
       onLayout={onLayout}
-      onResponderGrant={onResponderEvent}
-      onResponderMove={onResponderEvent}
-      onResponderRelease={onResponderEvent}
-      onResponderTerminate={onResponderEvent}
-      onStartShouldSetResponder={() => true}
+      onTouchStart={onResponderEvent}
+      onTouchMove={onResponderEvent}
+      onTouchEnd={onResponderEvent}
+      onTouchCancel={onResponderEvent}
       style={styles.arena}
     >
       {phase === "holding" ? (

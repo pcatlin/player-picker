@@ -97,6 +97,25 @@ export const usePickerState = () => {
         return;
       }
 
+      const currentTouches = activeTouchesRef.current;
+      const currentIds = sortTouches(currentTouches).map((touch) => touch.id);
+
+      if (currentIds.length < MIN_PLAYERS) {
+        setPhase("ready");
+        setRemainingMs(HOLD_DURATION_MS);
+        holdStartRef.current = null;
+        lockedTouchIdsRef.current = [];
+        setActiveTouches([]);
+        return;
+      }
+
+      if (!isSameIdSet(lockedTouchIdsRef.current, currentIds)) {
+        holdStartRef.current = Date.now();
+        lockedTouchIdsRef.current = currentIds;
+        setRemainingMs(HOLD_DURATION_MS);
+        return;
+      }
+
       const elapsed = Date.now() - holdStartRef.current;
       const nextRemaining = Math.max(0, HOLD_DURATION_MS - elapsed);
       setRemainingMs(nextRemaining);
