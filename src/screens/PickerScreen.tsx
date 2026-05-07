@@ -43,9 +43,9 @@ export const PickerScreen = () => {
   }, [hapticsEnabled, winner]);
 
   useEffect(() => {
-    const shouldFadeOut = !isSettingsOpen && phase !== "reveal" && activeTouches.length > 0;
+    const shouldFadeOut = !isSettingsOpen && phase !== "reveal" && activeTouches.length > 1;
     Animated.timing(textOpacity, {
-      duration: 220,
+      duration: 350,
       toValue: shouldFadeOut ? 0 : 1,
       useNativeDriver: true,
     }).start();
@@ -71,7 +71,11 @@ export const PickerScreen = () => {
         </Animated.View>
         <Pressable
           onPress={() => setIsSettingsOpen(true)}
-          style={[styles.iconButton, { transform: [{ translateY: textOffsetY }] }]}
+          style={[
+            styles.iconButton,
+            styles.settingsButton,
+            { transform: [{ translateY: textOffsetY }] },
+          ]}
         >
           <Text style={styles.iconText}>⚙</Text>
         </Pressable>
@@ -87,7 +91,7 @@ export const PickerScreen = () => {
         winner={winner}
       />
 
-      {phase === "ready" ? (
+      {phase === "ready" && !isSettingsOpen ? (
         <Animated.View
           style={[
             styles.instructions,
@@ -100,7 +104,7 @@ export const PickerScreen = () => {
         </Animated.View>
       ) : null}
 
-      {phase === "reveal" && winner ? (
+      {phase === "reveal" && winner && !isSettingsOpen ? (
         <WinnerModal onPlayAgain={resetForNewRound} placeTop={showWinnerControlsAtTop} />
       ) : null}
 
@@ -126,6 +130,9 @@ export const PickerScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  settingsButton: {
+    zIndex: 80,
   },
   helper: {
     color: "rgba(255,255,255,0.75)",
