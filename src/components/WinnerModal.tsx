@@ -1,15 +1,14 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 type WinnerModalProps = {
-  winnerLabel: string;
   onPlayAgain: () => void;
+  placeTop?: boolean;
 };
 
-export const WinnerModal = ({ onPlayAgain, winnerLabel }: WinnerModalProps) => {
+export const WinnerModal = ({ onPlayAgain, placeTop = false }: WinnerModalProps) => {
   return (
-    <View style={styles.wrapper}>
+    <View style={[styles.wrapper, placeTop ? styles.wrapperTop : styles.wrapperBottom]}>
       <Text style={styles.title}>Chosen Player</Text>
-      <Text style={styles.winner}>{winnerLabel}</Text>
       <Pressable onPress={onPlayAgain} style={styles.button}>
         <Text style={styles.buttonText}>Play Again</Text>
       </Pressable>
@@ -36,19 +35,18 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     textTransform: "uppercase",
   },
-  winner: {
-    color: "#ffffff",
-    fontSize: 42,
-    fontWeight: "900",
-    marginTop: 2,
-  },
   wrapper: {
     alignItems: "center",
-    bottom: 56,
     left: 0,
     paddingHorizontal: 20,
     position: "absolute",
     right: 0,
     zIndex: 50,
+  },
+  wrapperBottom: {
+    bottom: 56,
+  },
+  wrapperTop: {
+    top: 56,
   },
 });

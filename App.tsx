@@ -13,7 +13,7 @@ export default function App() {
         start={{ x: 0, y: 0 }}
         style={styles.app}
       >
-        <SafeAreaView style={styles.app}>
+        <SafeAreaView edges={[]} style={styles.app}>
           <StatusBar style="light" />
           <PickerScreen />
         </SafeAreaView>

@@ -1,6 +1,14 @@
 import * as Haptics from "expo-haptics";
-import { useEffect, useState } from "react";
-import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
+import { useEffect, useRef, useState } from "react";
+import {
+  Animated,
+  Platform,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+  useWindowDimensions,
+} from "react-native";
 import { SettingsScreen } from "../components/SettingsScreen";
 import { TouchArena } from "../components/TouchArena";
 import { WinnerModal } from "../components/WinnerModal";
@@ -8,6 +16,9 @@ import { DEFAULT_PLAYER_COLORS } from "../constants/colors";
 import { usePickerState } from "../state/usePickerState";
 
 export const PickerScreen = () => {
+  const { height: windowHeight } = useWindowDimensions();
+  const textOffsetY = windowHeight * 0.05;
+  const textOpacity = useRef(new Animated.Value(1)).current;
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [hapticsEnabled, setHapticsEnabled] = useState(true);
   const [playerColors, setPlayerColors] = useState(DEFAULT_PLAYER_COLORS);
@@ -31,18 +42,37 @@ export const PickerScreen = () => {
     });
   }, [hapticsEnabled, winner]);
 
+  useEffect(() => {
+    const shouldFadeOut = !isSettingsOpen && phase !== "reveal" && activeTouches.length > 0;
+    Animated.timing(textOpacity, {
+      duration: 220,
+      toValue: shouldFadeOut ? 0 : 1,
+      useNativeDriver: true,
+    }).start();
+  }, [activeTouches.length, isSettingsOpen, phase, textOpacity]);
+
+  const showWinnerControlsAtTop = Boolean(winner && winner.y > windowHeight / 2);
+
   return (
     <View style={styles.container}>
       {!isSettingsOpen ? (
       <View style={styles.header}>
-        <View>
+        <Animated.View
+          style={{
+            opacity: textOpacity,
+            transform: [{ translateY: textOffsetY }],
+          }}
+        >
           <Text style={styles.title}>Player Picker</Text>
           <Text style={styles.subtitle}>
             Everyone place and hold one finger for 5 seconds.
           </Text>
           <Text style={styles.helper}>Need at least {MIN_PLAYERS} players.</Text>
-        </View>
-        <Pressable onPress={() => setIsSettingsOpen(true)} style={styles.iconButton}>
+        </Animated.View>
+        <Pressable
+          onPress={() => setIsSettingsOpen(true)}
+          style={[styles.iconButton, { transform: [{ translateY: textOffsetY }] }]}
+        >
           <Text style={styles.iconText}>⚙</Text>
         </Pressable>
       </View>
@@ -58,13 +88,20 @@ export const PickerScreen = () => {
       />
 
       {phase === "ready" ? (
-        <View style={styles.instructions}>
+        <Animated.View
+          style={[
+            styles.instructions,
+            {
+              opacity: textOpacity,
+            },
+          ]}
+        >
           <Text style={styles.instructionsText}>Touch and hold to begin</Text>
-        </View>
+        </Animated.View>
       ) : null}
 
       {phase === "reveal" && winner ? (
-        <WinnerModal onPlayAgain={resetForNewRound} winnerLabel={winner.label} />
+        <WinnerModal onPlayAgain={resetForNewRound} placeTop={showWinnerControlsAtTop} />
       ) : null}
 
       {isSettingsOpen ? (

@@ -38,13 +38,13 @@ export const TouchArena = ({
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const fillAnim = useRef(new Animated.Value(0)).current;
   const maxRadiusRef = useRef(0);
-  const arenaOffsetRef = useRef({ x: 0, y: 0 });
+  const arenaPageOffsetRef = useRef({ x: 0, y: 0 });
 
   const onLayout = (event: LayoutChangeEvent) => {
     const { width, height } = event.nativeEvent.layout;
     maxRadiusRef.current = Math.hypot(width, height);
-    arenaRef.current?.measureInWindow((x, y) => {
-      arenaOffsetRef.current = { x, y };
+    arenaRef.current?.measure((_x, _y, _width, _height, pageX, pageY) => {
+      arenaPageOffsetRef.current = { x: pageX, y: pageY };
     });
   };
 
@@ -101,25 +101,23 @@ export const TouchArena = ({
       return null;
     }
 
-    const liveWinnerTouch = touches.find((touch) => touch.id === winner.touchId);
     return {
-      x: liveWinnerTouch?.x ?? winner.x,
-      y: liveWinnerTouch?.y ?? winner.y,
+      x: winner.x,
+      y: winner.y,
     };
-  }, [touches, winner]);
+  }, [winner]);
 
   const onResponderEvent = (
     event: NativeSyntheticEvent<NativeTouchEvent>,
   ) => {
     const { touches } = event.nativeEvent;
-    const { x: arenaX, y: arenaY } = arenaOffsetRef.current;
+    const { x: arenaPageX, y: arenaPageY } = arenaPageOffsetRef.current;
 
     const nextTouches: TouchPoint[] = touches
       .map((touch) => ({
         id: touch.identifier,
-        // page coordinates are stable on Android; convert to arena-local coordinates.
-        x: touch.pageX - arenaX,
-        y: touch.pageY - arenaY,
+        x: touch.pageX - arenaPageX,
+        y: touch.pageY - arenaPageY,
       }))
       .filter(
         (touch) =>
@@ -142,7 +140,10 @@ export const TouchArena = ({
       style={styles.arena}
     >
       {phase === "holding" ? (
-        <Animated.View style={[styles.countdownRing, { transform: [{ scale: pulseAnim }] }]}>
+        <Animated.View
+          pointerEvents="none"
+          style={[styles.countdownRing, { transform: [{ scale: pulseAnim }] }]}
+        >
           <Text style={styles.countdownText}>{countdownSeconds}</Text>
         </Animated.View>
       ) : null}
@@ -151,6 +152,7 @@ export const TouchArena = ({
         ? coloredTouches.map((touch) => (
             <View
               key={touch.id}
+              pointerEvents="none"
               style={[
                 styles.touchCircle,
                 {
@@ -166,6 +168,7 @@ export const TouchArena = ({
       {phase === "reveal" && winner && winnerMarkerPosition ? (
         <>
           <Animated.View
+            pointerEvents="none"
             style={[
               styles.winnerFill,
               {
@@ -180,6 +183,7 @@ export const TouchArena = ({
             ]}
           />
           <View
+            pointerEvents="none"
             style={[
               styles.winnerMarker,
               {
