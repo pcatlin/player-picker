@@ -13,10 +13,12 @@ import {
 import { SettingsScreen } from "../components/SettingsScreen";
 import { TouchArena } from "../components/TouchArena";
 import { WinnerModal } from "../components/WinnerModal";
+import { getSupportedLanguage, translate } from "../i18n/translations";
 import { useAppSettings } from "../state/useAppSettings";
 import { usePickerState } from "../state/usePickerState";
 
 export const PickerScreen = () => {
+  const language = getSupportedLanguage(Intl.DateTimeFormat().resolvedOptions().locale);
   const { height: windowHeight } = useWindowDimensions();
   const textOffsetY = windowHeight * 0.05;
   const textOpacity = useRef(new Animated.Value(1)).current;
@@ -95,11 +97,11 @@ export const PickerScreen = () => {
             transform: [{ translateY: textOffsetY }],
           }}
         >
-          <Text style={styles.title}>Player Picker</Text>
+          <Text style={styles.title}>{translate(language, "appTitle")}</Text>
           <Text style={styles.subtitle}>
-            Everyone place and hold one finger for 5 seconds.
+            {translate(language, "holdInstruction")}
           </Text>
-          <Text style={styles.helper}>Need at least {MIN_PLAYERS} players.</Text>
+          <Text style={styles.helper}>{translate(language, "minPlayers", { count: MIN_PLAYERS })}</Text>
         </Animated.View>
         <Pressable
           onPress={() => setIsSettingsOpen(true)}
@@ -125,7 +127,9 @@ export const PickerScreen = () => {
 
       {!isUnlocked && rawTouchCount >= 4 && !isSettingsOpen ? (
         <Pressable onPress={() => setIsSettingsOpen(true)} style={styles.unlockPromptInline}>
-          <Text style={styles.unlockPromptInlineText}>Unlock more players</Text>
+          <Text style={styles.unlockPromptInlineText}>
+            {translate(language, "unlockMorePlayers")}
+          </Text>
         </Pressable>
       ) : null}
 
@@ -138,13 +142,14 @@ export const PickerScreen = () => {
             },
           ]}
         >
-          <Text style={styles.instructionsText}>Touch and hold to begin</Text>
+          <Text style={styles.instructionsText}>{translate(language, "touchToBegin")}</Text>
         </Animated.View>
       ) : null}
 
       {phase === "reveal" && winner && !isSettingsOpen ? (
         <WinnerModal
           bottomOffset={winnerModalBottomOffset}
+          language={language}
           onPlayAgain={resetForNewRound}
         />
       ) : null}
@@ -153,32 +158,41 @@ export const PickerScreen = () => {
         <SettingsScreen
           canUseMorePlayers={isUnlocked}
           hapticsEnabled={hapticsEnabled}
+          language={language}
           onClose={() => setIsSettingsOpen(false)}
           onRestorePurchases={async () => {
             const restored = await restorePurchases();
             Alert.alert(
-              restored ? "Purchases restored" : "Nothing to restore",
               restored
-                ? "More players are now unlocked on this device."
-                : "No previous unlock purchase was found.",
+                ? translate(language, "purchasesRestoredTitle")
+                : translate(language, "nothingToRestoreTitle"),
+              restored
+                ? translate(language, "restoredBody")
+                : translate(language, "notFoundBody"),
             );
           }}
           onToggleHaptics={() => setHapticsEnabled(!hapticsEnabled)}
           onUnlockMorePlayers={async () => {
             const result = await unlockMorePlayers();
             if (result.ok) {
-              Alert.alert("Unlocked", "You can now pick from up to 8 players.");
+              Alert.alert(
+                translate(language, "unlockedTitle"),
+                translate(language, "unlockedBody"),
+              );
               return;
             }
 
             if (result.reason === "cancelled") {
-              Alert.alert("Purchase cancelled", "No changes were made.");
+              Alert.alert(
+                translate(language, "purchaseCancelledTitle"),
+                translate(language, "purchaseCancelledBody"),
+              );
               return;
             }
 
             Alert.alert(
-              "Unable to unlock",
-              "Please confirm RevenueCat keys and product setup, then try again.",
+              translate(language, "unableToUnlockTitle"),
+              translate(language, "unableToUnlockBody"),
             );
           }}
           onUpdatePlayerColor={updatePlayerColor}

@@ -1,9 +1,11 @@
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { COLOR_PICKER_SWATCHES } from "../constants/colors";
+import { SupportedLanguage, translate } from "../i18n/translations";
 
 type SettingsScreenProps = {
   canUseMorePlayers: boolean;
   hapticsEnabled: boolean;
+  language: SupportedLanguage;
   onClose: () => void;
   onRestorePurchases: () => void;
   onToggleHaptics: () => void;
@@ -16,6 +18,7 @@ type SettingsScreenProps = {
 export const SettingsScreen = ({
   canUseMorePlayers,
   hapticsEnabled,
+  language,
   onClose,
   onRestorePurchases,
   onToggleHaptics,
@@ -29,7 +32,7 @@ export const SettingsScreen = ({
   return (
     <View style={styles.screen}>
       <View style={styles.header}>
-        <Text style={styles.title}>Settings</Text>
+        <Text style={styles.title}>{translate(language, "settingsTitle")}</Text>
         <Pressable onPress={onClose} style={styles.iconButton}>
           <Text style={styles.iconText}>X</Text>
         </Pressable>
@@ -38,45 +41,51 @@ export const SettingsScreen = ({
       <ScrollView contentContainerStyle={styles.content}>
         {showUnlockPrompt ? (
           <View style={styles.promptCard}>
-            <Text style={styles.promptTitle}>Unlock more players</Text>
-            <Text style={styles.promptBody}>Open purchase options below in this settings screen.</Text>
+            <Text style={styles.promptTitle}>{translate(language, "unlockPromptCardTitle")}</Text>
+            <Text style={styles.promptBody}>{translate(language, "unlockPromptCardBody")}</Text>
           </View>
         ) : null}
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Gameplay</Text>
+          <Text style={styles.sectionTitle}>{translate(language, "gameplayTitle")}</Text>
           <Pressable onPress={onToggleHaptics} style={styles.toggleButton}>
             <Text style={styles.toggleText}>
-              Haptics: {hapticsEnabled ? "On" : "Off"}
+              {hapticsEnabled
+                ? translate(language, "hapticsOn")
+                : translate(language, "hapticsOff")}
             </Text>
           </Pressable>
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>More Players</Text>
+          <Text style={styles.sectionTitle}>{translate(language, "morePlayersTitle")}</Text>
           {!canUseMorePlayers ? (
             <>
-              <Text style={styles.helper}>pick from up to 8 players</Text>
+              <Text style={styles.helper}>{translate(language, "pickUpTo8")}</Text>
               <Pressable onPress={onUnlockMorePlayers} style={styles.actionButton}>
-                <Text style={styles.actionButtonText}>Unlock more players</Text>
+                <Text style={styles.actionButtonText}>
+                  {translate(language, "unlockMorePlayers")}
+                </Text>
               </Pressable>
               <Pressable onPress={onRestorePurchases} style={styles.secondaryButton}>
-                <Text style={styles.secondaryButtonText}>Restore purchases</Text>
+                <Text style={styles.secondaryButtonText}>
+                  {translate(language, "restorePurchases")}
+                </Text>
               </Pressable>
             </>
           ) : (
-            <Text style={styles.helper}>More players unlocked. Thank you!</Text>
+            <Text style={styles.helper}>{translate(language, "unlockedThanks")}</Text>
           )}
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Player Colors</Text>
-          <Text style={styles.helper}>
-            Choose fixed colors used for touch circles and winner reveal.
-          </Text>
+          <Text style={styles.sectionTitle}>{translate(language, "playerColorsTitle")}</Text>
+          <Text style={styles.helper}>{translate(language, "playerColorHelper")}</Text>
           {visibleColorRows.map((color, playerIndex) => (
             <View key={`player-color-${playerIndex}`} style={styles.playerRow}>
-              <Text style={styles.playerLabel}>Player {playerIndex + 1}</Text>
+              <Text style={styles.playerLabel}>
+                {translate(language, "playerLabel", { index: playerIndex })}
+              </Text>
               <View style={styles.swatches}>
                 {COLOR_PICKER_SWATCHES.map((swatch) => (
                   <Pressable
@@ -94,7 +103,7 @@ export const SettingsScreen = ({
           ))}
           {!canUseMorePlayers ? (
               <Text style={styles.helper}>
-                Players 4-8 are locked. Unlock more players to customize additional colors.
+                {translate(language, "playersLockedHelper")}
               </Text>
           ) : null}
         </View>

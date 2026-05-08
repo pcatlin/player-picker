@@ -1,16 +1,22 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
+import { SupportedLanguage, translate } from "../i18n/translations";
 
 type WinnerModalProps = {
+  language: SupportedLanguage;
   onPlayAgain: () => void;
   bottomOffset?: number;
 };
 
-export const WinnerModal = ({ onPlayAgain, bottomOffset = 56 }: WinnerModalProps) => {
+export const WinnerModal = ({
+  language,
+  onPlayAgain,
+  bottomOffset = 56,
+}: WinnerModalProps) => {
   return (
     <View style={[styles.wrapper, { bottom: bottomOffset }]}>
-      <Text style={styles.title}>Chosen Player</Text>
+      <Text style={styles.title}>{translate(language, "chosenPlayer")}</Text>
       <Pressable onPress={onPlayAgain} style={styles.button}>
-        <Text style={styles.buttonText}>Play Again</Text>
+        <Text style={styles.buttonText}>{translate(language, "playAgain")}</Text>
       </Pressable>
     </View>
   );
