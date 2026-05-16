@@ -31,19 +31,25 @@
       "android": {
         "track": "internal"
       },
-      "ios": {}
+      "ios": {
+        "metadataPath": "./store.config.js"
+      }
     },
     "preview": {
       "android": {
         "track": "internal"
       },
-      "ios": {}
+      "ios": {
+        "metadataPath": "./store.config.js"
+      }
     },
     "production": {
       "android": {
         "track": "production"
       },
-      "ios": {}
+      "ios": {
+        "metadataPath": "./store.config.js"
+      }
     }
   }
 }
